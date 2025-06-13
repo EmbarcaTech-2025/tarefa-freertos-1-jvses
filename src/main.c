@@ -2,8 +2,13 @@
 #include "pico/stdlib.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
+
+// #include "queue.h"
 #include "hardware/pwm.h"
 #include "hardware/clocks.h"
+
+#include "oled_control.h"
 
 
 #define LED_PIN 11 //11, 12 e 13
@@ -25,6 +30,9 @@
 // Handles para suspender/retomar tarefas. Assim não são usadas flags booleanas globais
 TaskHandle_t led_task_handle = NULL;
 TaskHandle_t buzzer_task_handle = NULL;
+
+SemaphoreHandle_t count;
+
 
 
 void blink_task(void *params) {
@@ -68,7 +76,7 @@ void bip_buzzer(){
     }
 }
 
-void button_check(){
+void button_check(){// vresponsável pelos botões e OLED
     gpio_init(BUTTON_A);
     gpio_set_dir(BUTTON_A, GPIO_IN);
     gpio_pull_up(BUTTON_A); // Habilita o resistor pull-up interno para evitar leituras incorretas.
@@ -76,15 +84,27 @@ void button_check(){
     gpio_set_dir(BUTTON_B, GPIO_IN);
     gpio_pull_up(BUTTON_B); // Habilita o resistor pull-up interno para evitar leituras incorretas.
 
+    //cofiguração OLED
+    setup_OLED();
+    oled_clear();
+    oled_render();
+
+    oled_clear();
+    oled_print("Led Ativo",0);
+    oled_print("Buzzer Ativo",8);
+    oled_render();
+
     while (true){
         /* code */
         // bool btuna=gpio_get(BUTTON_A);
         bool led_toggle_now=!gpio_get(BUTTON_A); //invertidos devido ao PULL-UP
         bool buz_toggle_now=!gpio_get(BUTTON_B);
 
+        
         if(led_toggle_now){//se botão for ativado então suspende serviço
             if (eTaskGetState(led_task_handle) != eSuspended) {
                     vTaskSuspend(led_task_handle);
+                    oled_print("Led suspenso",0);
 
                     // Desliga TODOS os LEDs ao suspender
                     gpio_put(LED_PIN, 0);
@@ -95,12 +115,14 @@ void button_check(){
             if (eTaskGetState(led_task_handle) == eSuspended){
                 vTaskResume(led_task_handle);
             }
+            oled_print("            ",0);//limpeza da linha no OLED
+            oled_print("Led Ativo",0);
         }
 
         if(buz_toggle_now){//se botão for ativado então suspende serviço
             if (eTaskGetState(buzzer_task_handle) != eSuspended) {
                     vTaskSuspend(buzzer_task_handle);
-
+                    oled_print("Buzzer suspenso",8);
                     // Desliga o Buzzer (precaução)
                     pwm_set_gpio_level(BUZA, 0);
             }
@@ -108,13 +130,19 @@ void button_check(){
             if (eTaskGetState(buzzer_task_handle) == eSuspended){
                 vTaskResume(buzzer_task_handle);
             }
+            oled_print("               ",8);//limpeza da linha no OLED
+            oled_print("Buzzer Ativo",8);
         }
+
+        oled_render();
         vTaskDelay(pdMS_TO_TICKS(100)); //Pooling mais rápido
     }
 }
 int main() {
     stdio_init_all();
     // sleep_ms(1000);
+    count = xSemaphoreCreateCounting(2,0);
+
     xTaskCreate(blink_task, "Blink", 256, NULL, 1, &led_task_handle);
     xTaskCreate(bip_buzzer, "Bip_Buzzer", 256, NULL, 1, &buzzer_task_handle);
     xTaskCreate(button_check, "Butt_checker", 256, NULL, 2, NULL);

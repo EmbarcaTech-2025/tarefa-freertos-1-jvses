@@ -11,7 +11,7 @@ Brasília, Junho de 2025
 
 ### Funcionamento
 
-Nesse código são criadas 3 Tasks. Uma para alternância dos LEDs Vermelho, Verde e Azul, uma para tocar o Buzzer por um tempo bem curto e um para a checagem dor botões apertados que irão desabilitar  um dos serviços. O botão A desativa os LEDs enquanto ele estiver apertado e o botão B desativa o Buzzer enquanto estiver pressionado.
+Nesse código são criadas 3 Tasks. Uma para alternância dos LEDs Vermelho, Verde e Azul, uma para tocar o Buzzer por um tempo bem curto e um para a checagem dor botões apertados que irão desabilitar  um dos serviços. O botão A desativa os LEDs enquanto ele estiver apertado e o botão B desativa o Buzzer enquanto estiver pressionado. Paralelamente a isso o display OLED exibe o estado dessas tarefas.
 
 #### Desafios Extras feitos
 
@@ -19,6 +19,8 @@ Nesse código são criadas 3 Tasks. Uma para alternância dos LEDs Vermelho, Ver
 > Para um funcionamento melhor do programa foi feito uma mudança na prioridade da Task responsável pela suspensão e retomada das outras duas tasks, ou seja, a Task dos botões recebeu uma prioridade maior.
 Sem ela como prioritária há uma chance de atraso maior na suspensão dos outros serviços. Quiçá a competição pela atenção do processador entre essas 3 faça com que demore demais até ela ser atendida e a ergonomia do aparelho para uso humano seja comprometida.
 
+* Escrita do estado das tarefas nos display OLED
+> A task responsável pela checagem dos botões, suspensão e retomada das outras tarefas também escreve no OLED o estado das tarefas em execução
 
 ### Reflexões
 

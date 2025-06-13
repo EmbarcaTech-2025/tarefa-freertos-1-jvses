@@ -43,7 +43,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(terefa1_freertos src/main.c )
+add_executable(terefa1_freertos src/main.c src/oled_control.c src/ssd1306_i2c.c)
 
 pico_set_program_name(terefa1_freertos "terefa1_freertos")
 pico_set_program_version(terefa1_freertos "0.1")
@@ -57,6 +57,7 @@ target_link_libraries(terefa1_freertos
         pico_stdlib
         FreeRTOS-Kernel-Heap4
         hardware_pwm
+        hardware_i2c
         hardware_clocks
         )
 
